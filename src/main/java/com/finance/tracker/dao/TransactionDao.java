@@ -39,7 +39,7 @@ public class TransactionDao {
         String sql = "SELECT t.*, c.name as category_name FROM transactions t " +
                      "LEFT JOIN categories c ON t.category_id = c.id " +
                      "WHERE t.user_id = ? " +
-                     "ORDER BY t.transaction_date DESC";
+                     "ORDER BY t.transaction_date DESC, t.id DESC";
         return jdbcTemplate.query(sql, rowMapper, userId);
     }
 

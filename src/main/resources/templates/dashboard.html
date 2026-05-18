@@ -1029,7 +1029,10 @@ function renderPieChart() {
 // ── Render tables ─────────────────────────────────
 function renderRecent() {
     const tbody = document.getElementById('recentBody');
-    const recent = allTransactions.sort((a,b) => new Date(b.transactionDate) - new Date(a.transactionDate)).slice(0, 5);
+    const recent = [...allTransactions].sort((a,b) => {
+        let diff = new Date(b.transactionDate) - new Date(a.transactionDate);
+        return diff === 0 ? b.id - a.id : diff;
+    }).slice(0, 5);
     if (recent.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="bi bi-inbox"></i>No recent transactions</td></tr>';
         return;
@@ -1059,8 +1062,14 @@ function renderTransactions() {
 
     // Advanced Sorting
     filtered.sort((a, b) => {
-        if(sortStr === 'date-desc') return new Date(b.transactionDate) - new Date(a.transactionDate);
-        if(sortStr === 'date-asc') return new Date(a.transactionDate) - new Date(b.transactionDate);
+        if(sortStr === 'date-desc') {
+            let diff = new Date(b.transactionDate) - new Date(a.transactionDate);
+            return diff === 0 ? b.id - a.id : diff;
+        }
+        if(sortStr === 'date-asc') {
+            let diff = new Date(a.transactionDate) - new Date(b.transactionDate);
+            return diff === 0 ? a.id - b.id : diff;
+        }
         if(sortStr === 'amount-desc') return b.amount - a.amount;
         if(sortStr === 'amount-asc') return a.amount - b.amount;
         return 0;
@@ -1100,13 +1109,14 @@ async function loadBudget() {
         if (!list) return;
         if (data.length === 0) { list.innerHTML = '<div class="empty-state" style="padding: 20px;"><i class="bi bi-target"></i> No budget limits set for this month.</div>'; return; }
         list.innerHTML = data.map(b => {
-            const limit = parseFloat(b.budget_limit) || 0;
-            const spent = parseFloat(b.actual_spent) || 0;
+            const limit = parseFloat(b.budget_limit || b.BUDGET_LIMIT) || 0;
+            const spent = parseFloat(b.actual_spent || b.ACTUAL_SPENT) || 0;
+            const catName = b.category || b.CATEGORY || 'Unknown';
             const pct = limit > 0 ? Math.min((spent / limit) * 100, 100).toFixed(0) : 0;
             const cls = pct >= 100 ? 'over' : pct >= 80 ? 'warn' : 'ok';
             return `<div class="budget-item">
                 <div class="budget-item-header">
-                    <span>${b.category}</span>
+                    <span>${catName}</span>
                     <span style="color:var(--text-secondary)">₹${fmt(spent)} / ${limit > 0 ? '₹' + fmt(limit) : 'No limit'} (${pct}%)</span>
                 </div>
                 <div class="budget-bar-bg"><div class="budget-bar ${cls}" style="width:${pct}%"></div></div>

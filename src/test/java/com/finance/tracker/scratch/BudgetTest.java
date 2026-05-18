@@ -1,0 +1,1 @@
+package com.finance.tracker.scratch; import java.util.*; public class BudgetTest { public static void main(String[] args) { Map<String, Object> body = new HashMap<>(); body.put("categoryId", 4); body.put("limit", 1000); Object o = body.get("limit"); System.out.println(Double.parseDouble(o.toString())); } }
