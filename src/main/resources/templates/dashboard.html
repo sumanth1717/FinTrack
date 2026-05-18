@@ -1444,14 +1444,17 @@ async function addFunds() {
     const amount = document.getElementById('fundAmount').value;
     if(!amount) return;
     
-    await fetch('/api/goals/' + id + '/add-funds', {
+    const res = await fetch('/api/goals/' + id + '/add-funds', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ amount: parseFloat(amount) })
     });
     closeFundModal();
     showToast('Funds added!', 'success');
+    // Reload goals, transactions AND balance so everything stays in sync
+    await loadTransactions();
     loadGoals();
+    loadSummary();
 }
 
 async function deleteGoal(id) {
