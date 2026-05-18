@@ -2,6 +2,11 @@
 
 A full-stack SaaS personal finance management application built with **Spring Boot**, **Spring Security**, **MySQL/H2**, and a modern **dark-themed UI**. Designed with multi-tenant architecture, automated background tasks, and containerized deployment support.
 
+## 🌐 Live Demo
+👉 **[https://fintrack-production-7c03.up.railway.app](https://fintrack-production-7c03.up.railway.app)**
+
+> **Demo credentials:** Username: `testuser` | Password: `password`
+
 ---
 
 ## 🎬 Features
