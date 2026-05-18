@@ -253,24 +253,67 @@
         .form-group { margin-bottom: 20px; }
         .form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; display: block; }
         .form-control { 
-            width: 100%; background: var(--bg-card2); border: 1px solid var(--border); 
-            border-radius: 12px; padding: 12px 16px; color: var(--text-primary); 
-            font-size: 15px; font-family: 'Outfit', sans-serif; outline: none; transition: all 0.3s; 
-            color-scheme: dark;
+            width: 100%; background: var(--bg-card2); border: 2px solid var(--border); 
+            border-radius: 12px; padding: 14px 18px; color: var(--text-primary); 
+            font-size: 15px; font-family: 'Outfit', sans-serif; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            color-scheme: dark; box-sizing: border-box;
         }
         [data-theme="light"] .form-control { color-scheme: light; }
-        .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15); }
-        .form-control option { background: var(--bg-primary); }
+        .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(123, 97, 255, 0.15); transform: translateY(-1px); }
+        .form-control:hover { border-color: rgba(123, 97, 255, 0.5); }
+        .form-control option { background: var(--bg-card); color: var(--text-primary); }
         
+        .glass .form-control {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+        }
+        [data-theme="light"] .glass .form-control {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .glass .form-control:focus {
+            background: rgba(0, 0, 0, 0.25);
+            border-color: var(--accent);
+        }
+        [data-theme="light"] .glass .form-control:focus {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Modern Select */
         select.form-control {
             appearance: none; -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23a0a5ba%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237b61ff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 16px center;
-            background-size: 12px auto;
-            padding-right: 40px;
+            background-size: 18px;
+            padding-right: 48px;
+            cursor: pointer;
         }
         
+        /* Modern Calendar (Date Input) */
+        input[type="date"].form-control {
+            position: relative;
+            cursor: text;
+        }
+        input[type="date"].form-control::-webkit-calendar-picker-indicator {
+            background: transparent;
+            color: transparent;
+            cursor: pointer;
+            width: 22px;
+            height: 22px;
+            position: absolute;
+            right: 14px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237b61ff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'%3E%3C/path%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transition: transform 0.2s;
+        }
+        input[type="date"].form-control::-webkit-calendar-picker-indicator:hover {
+            transform: scale(1.1);
+        }
+
         .btn-submit { 
             width: 100%; background: linear-gradient(135deg, var(--accent), #9683ff); 
             border: none; border-radius: 12px; padding: 14px; color: white; 
