@@ -1,0 +1,90 @@
+package com.finance.tracker.controller;
+
+import com.finance.tracker.dao.SavingsGoalDao;
+import com.finance.tracker.dao.UserDao;
+import com.finance.tracker.model.SavingsGoal;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/goals")
+public class SavingsGoalRestController {
+
+    private final SavingsGoalDao savingsGoalDao;
+    private final UserDao userDao;
+    private final com.finance.tracker.dao.TransactionDao transactionDao;
+    private final com.finance.tracker.dao.CategoryDao categoryDao;
+
+    public SavingsGoalRestController(SavingsGoalDao savingsGoalDao, UserDao userDao, 
+                                     com.finance.tracker.dao.TransactionDao transactionDao,
+                                     com.finance.tracker.dao.CategoryDao categoryDao) {
+        this.savingsGoalDao = savingsGoalDao;
+        this.userDao = userDao;
+        this.transactionDao = transactionDao;
+        this.categoryDao = categoryDao;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<SavingsGoal>> getGoals(Principal principal) {
+        int userId = userDao.findByUsername(principal.getName()).getId();
+        return ResponseEntity.ok(savingsGoalDao.findAll(userId));
+    }
+
+    @PostMapping
+    public ResponseEntity<String> addGoal(@RequestBody SavingsGoal goal, Principal principal) {
+        int userId = userDao.findByUsername(principal.getName()).getId();
+        goal.setUserId(userId);
+        savingsGoalDao.save(goal);
+        return ResponseEntity.ok("Goal created");
+    }
+
+    @PostMapping("/{id}/add-funds")
+    public ResponseEntity<String> addFunds(@PathVariable int id, @RequestBody Map<String, Double> payload, Principal principal) {
+        int userId = userDao.findByUsername(principal.getName()).getId();
+        double amount = payload.get("amount");
+        
+        // Find the goal name
+        SavingsGoal goal = savingsGoalDao.findAll(userId).stream()
+            .filter(g -> g.getId() == id).findFirst().orElse(null);
+            
+        if (goal != null) {
+            savingsGoalDao.addFunds(id, amount, userId);
+            
+            // Create an expense transaction for the transfer
+            com.finance.tracker.model.Transaction t = new com.finance.tracker.model.Transaction();
+            t.setTitle("Savings: " + goal.getName());
+            t.setAmount(BigDecimal.valueOf(amount));
+            t.setType("EXPENSE");
+            t.setTransactionDate(LocalDate.now());
+            t.setNote("Automated transfer to savings goal");
+            t.setUserId(userId);
+            
+            // Try to use 'Investments' or 'Other' category, else default to first expense category
+            List<com.finance.tracker.model.Category> cats = categoryDao.findAll(userId);
+            com.finance.tracker.model.Category targetCat = cats.stream()
+                .filter(c -> "EXPENSE".equals(c.getType()) && (c.getName().equalsIgnoreCase("Other") || c.getName().equalsIgnoreCase("Investments")))
+                .findFirst()
+                .orElse(cats.stream().filter(c -> "EXPENSE".equals(c.getType())).findFirst().orElse(null));
+                
+            if (targetCat != null) {
+                t.setCategoryId(targetCat.getId());
+                transactionDao.save(t);
+            }
+        }
+        
+        return ResponseEntity.ok("Funds added");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteGoal(@PathVariable int id, Principal principal) {
+        int userId = userDao.findByUsername(principal.getName()).getId();
+        savingsGoalDao.delete(id, userId);
+        return ResponseEntity.ok("Goal deleted");
+    }
+}
