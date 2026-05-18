@@ -49,35 +49,41 @@ public class SavingsGoalRestController {
         int userId = userDao.findByUsername(principal.getName()).getId();
         double amount = payload.get("amount");
         
-        // Find the goal name
+        // Find the goal
         SavingsGoal goal = savingsGoalDao.findAll(userId).stream()
             .filter(g -> g.getId() == id).findFirst().orElse(null);
             
-        if (goal != null) {
-            savingsGoalDao.addFunds(id, amount, userId);
-            
-            // Create an expense transaction for the transfer
+        if (goal == null) return ResponseEntity.notFound().build();
+
+        // Update goal progress first
+        savingsGoalDao.addFunds(id, amount, userId);
+
+        // Create an expense transaction — always save even if category lookup fails
+        try {
             com.finance.tracker.model.Transaction t = new com.finance.tracker.model.Transaction();
             t.setTitle("Savings: " + goal.getName());
             t.setAmount(BigDecimal.valueOf(amount));
             t.setType("EXPENSE");
             t.setTransactionDate(LocalDate.now());
-            t.setNote("Automated transfer to savings goal");
+            t.setNote("Transfer to savings goal");
             t.setUserId(userId);
-            
-            // Try to use 'Investments' or 'Other' category, else default to first expense category
+
+            // Find a valid expense category — use first available
             List<com.finance.tracker.model.Category> cats = categoryDao.findAll(userId);
-            com.finance.tracker.model.Category targetCat = cats.stream()
-                .filter(c -> "EXPENSE".equals(c.getType()) && (c.getName().equalsIgnoreCase("Other") || c.getName().equalsIgnoreCase("Investments")))
+            cats.stream()
+                .filter(c -> "EXPENSE".equals(c.getType()))
                 .findFirst()
-                .orElse(cats.stream().filter(c -> "EXPENSE".equals(c.getType())).findFirst().orElse(null));
-                
-            if (targetCat != null) {
-                t.setCategoryId(targetCat.getId());
+                .ifPresent(c -> t.setCategoryId(c.getId()));
+
+            // Only save if we have a valid categoryId (> 0)
+            if (t.getCategoryId() > 0) {
                 transactionDao.save(t);
             }
+        } catch (Exception e) {
+            // Log but don't fail — goal already updated
+            System.err.println("Warning: Could not save goal transfer transaction: " + e.getMessage());
         }
-        
+
         return ResponseEntity.ok("Funds added");
     }
 

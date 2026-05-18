@@ -1152,6 +1152,8 @@ async function saveBudget() {
             showToast('Budget saved successfully!', 'success');
             document.getElementById('budgetLimit').value = '';
             loadBudget();
+        } else {
+            showToast('Failed to save budget. Try again.', 'error');
         }
     } catch(e){ showToast('Error saving budget', 'error'); }
 }
